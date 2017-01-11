@@ -4,5 +4,8 @@ class DecisionTree(object):
         self.y = y
         self.min_sample_split = min_sample_split
 
-    def predict(self, X, y):
+    def train(self):
+        pass
+
+    def predict(self, X):
         pass

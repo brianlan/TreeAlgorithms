@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 
 from classifier import DecisionTree
+from utilities import calc_accuracy
 
 
 ######################################################
@@ -17,3 +18,6 @@ test_X, test_y = test_df[attributes], test_df[['class']]
 #               Train model
 ######################################################
 model = DecisionTree(train_X, train_y, min_sample_split=10)
+model.train()
+pred_y = model.predict(test_X)
+acc = calc_accuracy(pred_y, test_y)
