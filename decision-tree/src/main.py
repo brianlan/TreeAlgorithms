@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 from classifier import DecisionTree
 from utilities import calc_accuracy

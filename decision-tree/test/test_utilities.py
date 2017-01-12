@@ -1,12 +1,17 @@
 import pandas as pd
 from pytest import approx
 
-from utilities import entropy, information_gain
+from utilities import entropy, information_gain, entropy_fast
 
 
 def test_entropy():
     values = pd.Series(['s', 's', 'f'])
     assert entropy(values) == approx(0.9182958340544896)
+
+
+def test_entropy_fast():
+    values = pd.Series(['s', 's', 'f'])
+    assert entropy_fast(values) == approx(0.9182958340544896)
 
 
 def test_information_gain():

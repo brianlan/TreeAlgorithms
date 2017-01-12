@@ -1,5 +1,7 @@
 from math import log
 
+import numpy as np
+
 
 def calc_accuracy(pred, ground_truth):
     pass
@@ -15,6 +17,15 @@ def entropy(x):
         etrpy += -p * log(p, 2)
 
     return etrpy
+
+
+def entropy_fast(x):
+    num_examples = float(len(x))
+    _, cnt = np.unique(x, return_counts=True)
+    p = cnt / num_examples
+    logp = np.log2(p)
+    return np.sum(-p * logp)
+
 
 def information_gain(values, classes):
     """values should be of type pd.Series"""
