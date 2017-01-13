@@ -9,11 +9,11 @@ class TreeNode(object):
         self.attr = attr
         self.value = value
         self.count_per_class = pd.Series([], name='class') if classes is None else classes['class'].value_counts()
-        self.children = None
+        self.branches = None
         self.predicted_class = None
 
     def __repr__(self):
-        if self.attr == None:
+        if self.attr is None:
             return 'nil'
         else:
             stats = ', '.join(['{}: {}'.format(c, n) for c, n in self.count_per_class.iteritems()])
@@ -23,6 +23,7 @@ class TreeNode(object):
     def __str__(self):
         return self.__repr__()
 
+
 class DecisionTree(object):
     def __init__(self, X, y, min_sample_split=10):
         self.X = X
@@ -30,7 +31,7 @@ class DecisionTree(object):
         self.min_sample_split = min_sample_split
         self.tree = TreeNode(attr='<start>', value='<start>', classes=self.y)
 
-    def id3(self, parent, examples, classes):
+    def _id3(self, parent, examples, classes):
         if examples.empty or len(examples) < self.min_sample_split or len(classes['class'].unique()) == 1:
             parent.predicted_class = stats.mode(classes).mode[0, 0]
             return
@@ -44,16 +45,28 @@ class DecisionTree(object):
                 best_attr = attr
 
         distinct_values = examples[best_attr].unique()
-        parent.children = []
+        parent.branches = []
         for v in distinct_values:
             sub_examples = examples[examples[best_attr] == v].drop(best_attr, axis=1)
             sub_classes = classes[examples[best_attr] == v]
             sub_tree = TreeNode(attr=best_attr, value=v, classes=sub_classes)
-            self.id3(sub_tree, sub_examples, sub_classes)
-            parent.children.append(sub_tree)
+            self._id3(sub_tree, sub_examples, sub_classes)
+            parent.branches.append(sub_tree)
+
+    def _get_class(self, node, x):
+        if node.predicted_class is not None:
+            return node.predicted_class
+
+        for branch in node.branches:
+            if x[branch.attr] == branch.value:
+                return self._get_class(branch, x)
 
     def train(self):
-        self.id3(self.tree, self.X, self.y)
+        self._id3(self.tree, self.X, self.y)
 
-    def predict(self, X):
-        pass
+    def predict(self, X: pd.DataFrame):
+        pred = []
+        for _, x in X.iterrows():
+            pred.append(self._get_class(self.tree, x))
+
+        return pd.DataFrame({'class': pred})

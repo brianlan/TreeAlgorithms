@@ -1,6 +1,6 @@
 import pandas as pd
 
-from classifier import DecisionTree
+from classifier import DecisionTree, TreeNode
 
 
 def test_train_decision_tree_on_small_data():
@@ -16,22 +16,22 @@ def test_train_decision_tree_on_small_data():
 
     model = DecisionTree(train_X, train_y, min_sample_split=1)
     model.train()
-    assert len(model.tree.children) == 2
+    assert len(model.tree.branches) == 2
     assert '<start>=<start>' in str(model.tree)
     assert model.tree.predicted_class is None
-    assert model.tree.children[0].children is None
-    assert model.tree.children[1].children is None
-    assert model.tree.children[0].attr == model.tree.children[1].attr == 'speed_limit'
+    assert model.tree.branches[0].branches is None
+    assert model.tree.branches[1].branches is None
+    assert model.tree.branches[0].attr == model.tree.branches[1].attr == 'speed_limit'
 
-    if model.tree.children[0].value == 'yes':
-        assert model.tree.children[0].predicted_class == 'slow'
+    if model.tree.branches[0].value == 'yes':
+        assert model.tree.branches[0].predicted_class == 'slow'
     else:
-        assert model.tree.children[0].predicted_class == 'fast'
+        assert model.tree.branches[0].predicted_class == 'fast'
 
-    if model.tree.children[1].value == 'yes':
-        assert model.tree.children[1].predicted_class == 'slow'
+    if model.tree.branches[1].value == 'yes':
+        assert model.tree.branches[1].predicted_class == 'slow'
     else:
-        assert model.tree.children[1].predicted_class == 'fast'
+        assert model.tree.branches[1].predicted_class == 'fast'
 
 
 def test_train_decision_tree_on_small_data2():
@@ -46,13 +46,34 @@ def test_train_decision_tree_on_small_data2():
 
     model = DecisionTree(train_X, train_y, min_sample_split=1)
     model.train()
-    assert len(model.tree.children) == 2
+    assert len(model.tree.branches) == 2
     assert '<start>=<start>' in str(model.tree)
     assert model.tree.predicted_class is None
-    assert model.tree.children[0].attr == model.tree.children[1].attr == 'grade'
+    assert model.tree.branches[0].attr == model.tree.branches[1].attr == 'grade'
 
-    if model.tree.children[0].value == 'flat':
-        assert model.tree.children[0].predicted_class == 'fast'
+    if model.tree.branches[0].value == 'flat':
+        assert model.tree.branches[0].predicted_class == 'fast'
 
-    if model.tree.children[1].value == 'flat':
-        assert model.tree.children[1].predicted_class == 'fast'
+    if model.tree.branches[1].value == 'flat':
+        assert model.tree.branches[1].predicted_class == 'fast'
+
+
+def test_predict_using_decision_tree():
+    model = DecisionTree(None, None, min_sample_split=1)
+    model.tree = TreeNode(attr='<start>', value='<start>')
+
+    left_branch = TreeNode(attr='speed_limit', value='yes')
+    left_branch.predicted_class = 'slow'
+
+    right_branch = TreeNode(attr='speed_limit', value='no')
+    right_branch.predicted_class = 'fast'
+
+    model.tree.branches = [left_branch, right_branch]
+
+    test_X = pd.DataFrame({
+        'grade': ['steep', 'flat'],
+        'bumpiness': ['smooth', 'smooth'],
+        'speed_limit': ['yes', 'no']
+    })
+    pred = model.predict(test_X)
+    assert pred['class'].values.tolist() == ['slow', 'fast']

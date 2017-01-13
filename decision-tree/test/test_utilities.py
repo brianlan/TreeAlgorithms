@@ -1,7 +1,7 @@
 import pandas as pd
 from pytest import approx
 
-from utilities import entropy, information_gain, entropy_fast
+from utilities import entropy, information_gain, entropy_fast, calc_accuracy
 
 
 def test_entropy():
@@ -18,3 +18,10 @@ def test_information_gain():
     values = pd.Series(['s', 's', 'f', 's'])
     classes = pd.Series(['A', 'A', 'B', 'B'])
     assert information_gain(values, classes) == approx(0.31127812445913283)
+
+
+def test_calc_accurary():
+    pred = pd.DataFrame({'class': [1, 1, 1, 1, 1, 2, 2, 2, 2, 2]})
+    ground_truth = pd.DataFrame({'class': [1, 1, 2, 2, 2, 2, 2, 2, 1, 1]})
+    acc = calc_accuracy(pred, ground_truth)
+    assert acc == 0.5

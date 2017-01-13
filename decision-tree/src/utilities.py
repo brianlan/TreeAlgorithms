@@ -4,7 +4,7 @@ import numpy as np
 
 
 def calc_accuracy(pred, ground_truth):
-    pass
+    return np.sum(ground_truth['class'].values == pred['class'].values) / float(len(ground_truth))
 
 
 def entropy(x):
