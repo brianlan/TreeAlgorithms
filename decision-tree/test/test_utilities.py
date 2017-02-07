@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from pytest import approx
 
 from utilities import entropy, information_gain, entropy_fast, calc_accuracy
@@ -21,7 +22,7 @@ def test_information_gain():
 
 
 def test_calc_accurary():
-    pred = pd.DataFrame({'class': [1, 1, 1, 1, 1, 2, 2, 2, 2, 2]})
-    ground_truth = pd.DataFrame({'class': [1, 1, 2, 2, 2, 2, 2, 2, 1, 1]})
+    pred = np.array([1, 1, 1, 1, 1, 2, 2, 2, 2, 2])
+    ground_truth = np.array([1, 1, 2, 2, 2, 2, 2, 2, 1, 1])
     acc = calc_accuracy(pred, ground_truth)
     assert acc == 0.5

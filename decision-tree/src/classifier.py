@@ -9,15 +9,19 @@ class TreeNode(object):
     def __init__(self, attr=None, value=None, classes=None):
         self.attr = attr
         self.value = value
-        _, self.count_per_class = np.array([]) if classes is None else np.unique(classes, return_counts=True)
         self.branches = None
         self.predicted_class = None
+
+        if classes is None:
+            self.unique_class, self.count_per_class = np.array([]), np.array([])
+        else:
+            self.unique_class, self.count_per_class = np.unique(classes, return_counts=True)
 
     def __repr__(self):
         if self.attr is None:
             return 'nil'
         else:
-            stats = ', '.join(['{}: {}'.format(c, n) for c, n in self.count_per_class.iteritems()])
+            stats = ', '.join(['{}: {}'.format(c, n) for c, n in zip(self.unique_class, self.count_per_class)])
             pred = '' if self.predicted_class is None else '{}<-'.format(self.predicted_class)
             return '{}{}={} ({})'.format(pred, self.attr, self.value, stats)
 
@@ -33,19 +37,19 @@ class DecisionTree(object):
         self.tree = TreeNode(attr='<start>', value='<start>', classes=self.y)
 
     def _id3(self, parent, examples, classes):
-        if examples.empty or len(examples) <= self.min_sample_split or len(np.unique(classes)) == 1:
+        if examples.size == 0 or examples.shape[0] <= self.min_sample_split or len(np.unique(classes)) == 1:
             parent.predicted_class = stats.mode(classes).mode[0]
             return
 
         best_info_gain = -99999
         best_attr = None
-        for attr in examples.columns:
-            info_gain = information_gain(examples[attr].values, classes)
+        for col_idx in range(examples.shape[1]):
+            info_gain = information_gain(examples[:, col_idx], classes)
             if info_gain > best_info_gain:
                 best_info_gain = info_gain
-                best_attr = attr
+                best_attr = col_idx
 
-        best_attr_array = examples[best_attr].values
+        best_attr_array = examples[:, best_attr]
         distinct_values = np.unique(best_attr_array)
         parent.branches = []
         for v in distinct_values:
@@ -67,9 +71,9 @@ class DecisionTree(object):
     def train(self):
         self._id3(self.tree, self.X, self.y)
 
-    def predict(self, X: pd.DataFrame):
+    def predict(self, X):
         pred = []
-        for _, x in X.iterrows():
-            pred.append(self._get_class(self.tree, x))
+        for row_idx in range(X.shape[0]):
+            pred.append(self._get_class(self.tree, X[row_idx, :]))
 
         return pd.DataFrame({'class': pred})

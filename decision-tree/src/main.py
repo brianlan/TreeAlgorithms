@@ -19,11 +19,11 @@ test_X, test_y = test_df[attributes], test_df[['class']]
 #               Train model
 ######################################################
 t1 = time.time()
-model = DecisionTree(train_X, train_y['class'].values, min_sample_split=1)
+model = DecisionTree(train_X.values, train_y['class'].values, min_sample_split=1)
 model.train()
 print('Training phase took {:.2f} seconds.'.format(time.time() - t1))
 
 t2 = time.time()
-pred_y = model.predict(test_X)
+pred_y = model.predict(test_X.values)
 acc = calc_accuracy(pred_y['class'].values, test_y['class'].values)
 print('Prediction phase took {:.2f} seconds, and the accuracy is: {:.3f}'.format(time.time() - t2, acc))
