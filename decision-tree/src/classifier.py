@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from scipy import stats
 
 from utilities import information_gain
@@ -8,7 +9,7 @@ class TreeNode(object):
     def __init__(self, attr=None, value=None, classes=None):
         self.attr = attr
         self.value = value
-        self.count_per_class = pd.Series([], name='class') if classes is None else classes['class'].value_counts()
+        _, self.count_per_class = np.array([]) if classes is None else np.unique(classes, return_counts=True)
         self.branches = None
         self.predicted_class = None
 
@@ -32,23 +33,25 @@ class DecisionTree(object):
         self.tree = TreeNode(attr='<start>', value='<start>', classes=self.y)
 
     def _id3(self, parent, examples, classes):
-        if examples.empty or len(examples) < self.min_sample_split or len(classes['class'].unique()) == 1:
-            parent.predicted_class = stats.mode(classes).mode[0, 0]
+        if examples.empty or len(examples) <= self.min_sample_split or len(np.unique(classes)) == 1:
+            parent.predicted_class = stats.mode(classes).mode[0]
             return
 
         best_info_gain = -99999
         best_attr = None
         for attr in examples.columns:
-            info_gain = information_gain(examples[attr], classes['class'])
+            info_gain = information_gain(examples[attr].values, classes)
             if info_gain > best_info_gain:
                 best_info_gain = info_gain
                 best_attr = attr
 
-        distinct_values = examples[best_attr].unique()
+        best_attr_array = examples[best_attr].values
+        distinct_values = np.unique(best_attr_array)
         parent.branches = []
         for v in distinct_values:
-            sub_examples = examples[examples[best_attr] == v].drop(best_attr, axis=1)
-            sub_classes = classes[examples[best_attr] == v]
+            # sub_examples = examples[best_attr_array == v].drop(best_attr, axis=1)
+            sub_examples = examples[best_attr_array == v]
+            sub_classes = classes[best_attr_array == v]
             sub_tree = TreeNode(attr=best_attr, value=v, classes=sub_classes)
             self._id3(sub_tree, sub_examples, sub_classes)
             parent.branches.append(sub_tree)

@@ -4,7 +4,7 @@ import numpy as np
 
 
 def calc_accuracy(pred, ground_truth):
-    return np.sum(ground_truth['class'].values == pred['class'].values) / float(len(ground_truth))
+    return np.sum(ground_truth == pred) / float(len(ground_truth))
 
 
 def entropy(x):
@@ -30,9 +30,10 @@ def entropy_fast(x):
 def information_gain(values, classes):
     """values should be of type pd.Series"""
     num_examples = float(len(values))
-    gain = entropy(classes)
-    for v in values.unique():
-        classes_v = classes[values == v]
-        gain -= len(classes_v) / num_examples * entropy(classes_v)
+    gain = entropy_fast(classes)
+
+    unique_values, cnt = np.unique(values, return_counts=True)
+    for v, c in zip(unique_values, cnt):
+        gain -= c / num_examples * entropy_fast(classes[values == v])
 
     return gain

@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
 
-NUM_TRAIN = 10000
+NUM_TRAIN = 6000
 col_names = ['parents', 'has_nurs', 'form', 'children', 'housing', 'finance', 'social', 'health', 'class']
 
 all = pd.read_csv('../dataset/nursery.data.txt', header=None)
-np.random.seed(1024)
+np.random.seed(2048)
 rand_perm = np.random.permutation(len(all))
 train, test = all.loc[rand_perm[:NUM_TRAIN]], all.loc[rand_perm[NUM_TRAIN:]]
 train.columns = test.columns = col_names
