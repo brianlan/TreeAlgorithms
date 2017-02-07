@@ -6,18 +6,18 @@ from utilities import entropy, information_gain, entropy_fast, calc_accuracy
 
 
 def test_entropy():
-    values = pd.Series(['s', 's', 'f'])
+    values = pd.Series([0, 0, 1])
     assert entropy(values) == approx(0.9182958340544896)
 
 
 def test_entropy_fast():
-    values = pd.Series(['s', 's', 'f'])
+    values = pd.Series([0, 0, 1])
     assert entropy_fast(values) == approx(0.9182958340544896)
 
 
 def test_information_gain():
-    values = pd.Series(['s', 's', 'f', 's'])
-    classes = pd.Series(['A', 'A', 'B', 'B'])
+    values = pd.Series([0, 0, 1, 0])
+    classes = pd.Series([2, 2, 3, 3])
     assert information_gain(values, classes) == approx(0.31127812445913283)
 
 

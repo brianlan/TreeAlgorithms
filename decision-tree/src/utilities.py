@@ -19,7 +19,6 @@ def entropy(x):
     return etrpy
 
 
-@profile
 def entropy_fast(x):
     num_examples = float(len(x))
     bin_count = np.bincount(x)
@@ -30,7 +29,6 @@ def entropy_fast(x):
     return tmp.sum()
 
 
-@profile
 def information_gain(values, classes):
     """values should be of type pd.Series"""
     num_examples = float(len(values))
