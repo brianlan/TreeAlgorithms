@@ -19,20 +19,25 @@ def entropy(x):
     return etrpy
 
 
+@profile
 def entropy_fast(x):
     num_examples = float(len(x))
-    _, cnt = np.unique(x, return_counts=True)
+    bin_count = np.bincount(x)
+    cnt = bin_count[bin_count > 0]
     p = cnt / num_examples
     logp = np.log2(p)
-    return np.sum(-p * logp)
+    tmp = -p * logp
+    return tmp.sum()
 
 
+@profile
 def information_gain(values, classes):
     """values should be of type pd.Series"""
     num_examples = float(len(values))
     gain = entropy_fast(classes)
 
-    unique_values, cnt = np.unique(values, return_counts=True)
+    bin_count = np.bincount(values)
+    unique_values, cnt = np.nonzero(bin_count)[0], bin_count[bin_count > 0]
     for v, c in zip(unique_values, cnt):
         gain -= c / num_examples * entropy_fast(classes[values == v])
 

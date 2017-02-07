@@ -76,4 +76,4 @@ class DecisionTree(object):
         for row_idx in range(X.shape[0]):
             pred.append(self._get_class(self.tree, X[row_idx, :]))
 
-        return pd.DataFrame({'class': pred})
+        return np.array(pred)
