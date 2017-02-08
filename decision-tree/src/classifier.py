@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 from scipy import stats
 
@@ -37,8 +36,9 @@ class DecisionTree(object):
         self.tree = TreeNode(attr='<start>', value='<start>', classes=self.y)
 
     def _id3(self, parent, examples, classes):
+        parent.predicted_class = stats.mode(classes).mode[0]
+
         if examples.size == 0 or examples.shape[0] <= self.min_sample_split or len(np.unique(classes)) == 1:
-            parent.predicted_class = stats.mode(classes).mode[0]
             return
 
         best_info_gain = -99999
@@ -61,12 +61,12 @@ class DecisionTree(object):
             parent.branches.append(sub_tree)
 
     def _get_class(self, node, x):
-        if node.predicted_class is not None:
-            return node.predicted_class
+        if node.branches:
+            for branch in node.branches:
+                if x[branch.attr] == branch.value:
+                    return self._get_class(branch, x)
 
-        for branch in node.branches:
-            if x[branch.attr] == branch.value:
-                return self._get_class(branch, x)
+        return node.predicted_class
 
     def train(self):
         self._id3(self.tree, self.X, self.y)

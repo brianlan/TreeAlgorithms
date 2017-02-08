@@ -5,7 +5,7 @@ import numpy as np
 from sklearn import preprocessing
 
 from classifier import DecisionTree
-from utilities import calc_accuracy
+from utilities import calc_accuracy, find_mis_classified_samples
 
 
 ######################################################
@@ -43,3 +43,5 @@ t2 = time.time()
 pred_y = model.predict(test_X_numerical)
 acc = calc_accuracy(pred_y, test_y_numerical)
 print('Prediction phase took {:.1f} ms, and the accuracy is: {:.3f}'.format((time.time() - t2) * 1000, acc))
+
+# find_mis_classified_samples(pred_y, test_y_numerical)

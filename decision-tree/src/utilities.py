@@ -7,6 +7,12 @@ def calc_accuracy(pred, ground_truth):
     return np.sum(ground_truth == pred) / float(len(ground_truth))
 
 
+def find_mis_classified_samples(pred, ground_truth):
+    for i in range(len(ground_truth)):
+        if pred[i] != ground_truth[i]:
+            print('[{}] ground_truth: {}, pred: {}'.format(i, ground_truth[i], pred[i]))
+
+
 def entropy(x):
     """x should be of type pd.Series"""
     etrpy = 0.0
