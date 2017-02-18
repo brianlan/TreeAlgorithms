@@ -2,17 +2,18 @@ import time
 
 import pandas as pd
 import numpy as np
-from sklearn import tree, preprocessing
+from sklearn import preprocessing
 
-from utilities import calc_accuracy
+from classifier import DecisionTree, ID3, C45
+from utilities import calc_accuracy, find_mis_classified_samples
 
 
 ######################################################
-#                    Load data
+#               Load data
 ######################################################
 attributes = ['parents', 'has_nurs', 'form', 'children', 'housing', 'finance', 'social', 'health']
-train_df = pd.read_csv('../dataset/train.txt')
-test_df = pd.read_csv('../dataset/test.txt')
+train_df = pd.read_csv('../../decision-tree/dataset/train.txt')
+test_df = pd.read_csv('../../decision-tree/dataset/test.txt')
 train_X, train_y = train_df[attributes].values, train_df[['class']].values.tolist()
 test_X, test_y = test_df[attributes].values, test_df[['class']]
 
@@ -31,15 +32,16 @@ test_y_numerical = le_label.transform(test_y)
 print('Transforming data took {:.1f} ms'.format((time.time() - t0) * 1000))
 
 ######################################################
-#                    Train model
+#               Train model
 ######################################################
 t1 = time.time()
-clf = tree.DecisionTreeClassifier(min_samples_split=5)
-clf = clf.fit(train_X_numerical, train_y_numerical)
+model = DecisionTree(algorithm=C45(min_sample_split=1))
+model.train(train_X_numerical, train_y_numerical)
 print('Training phase took {:.1f} ms.'.format((time.time() - t1) * 1000))
 
 t2 = time.time()
-pred_y_numerical = clf.predict(test_X_numerical)
-pred_y = le_label.inverse_transform(pred_y_numerical)
-acc = calc_accuracy(pred_y, test_y['class'].values)
+pred_y = model.predict(test_X_numerical)
+acc = calc_accuracy(pred_y, test_y_numerical)
 print('Prediction phase took {:.1f} ms, and the accuracy is: {:.3f}'.format((time.time() - t2) * 1000, acc))
+
+find_mis_classified_samples(pred_y, test_y_numerical)
