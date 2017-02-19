@@ -4,7 +4,7 @@ from abc import abstractmethod
 import numpy as np
 from scipy import stats
 
-from utilities import categorical_information_gain, numerical_information_gain
+from utilities import categorical_information_gain, numerical_information_gain, calc_accuracy
 
 
 class TreeNode(object):
@@ -70,9 +70,9 @@ class ID3(Algorithm):
 
 
 class C45(Algorithm):
-    def __init__(self, min_sample_split=10, random_feature_subset_size=None):
+    def __init__(self, min_sample_split=10, random_feature_set_size=None):
         self.min_sample_split = min_sample_split
-        self.random_feature_subset_size = random_feature_subset_size
+        self.random_feature_set_size = random_feature_set_size
 
     def _grow_branch(self, parent, X, y, best_attr, ref_value, path_func):
         tree = TreeNode(attr=best_attr, ref_value=ref_value, path_func=path_func)
@@ -101,9 +101,9 @@ class C45(Algorithm):
             self._grow_branch(parent, X, y, best_attr, '>='+str(best_threshold), lambda x, th=best_threshold: x >= th)
 
     def find_best_split(self, X, y):
-        if self.random_feature_subset_size:
+        if self.random_feature_set_size:
             np.random.seed(int.from_bytes(os.urandom(4), byteorder="big"))
-            features_to_use = np.random.choice(X.shape[1], self.random_feature_subset_size)
+            features_to_use = np.random.choice(X.shape[1], self.random_feature_set_size)
         else:
             features_to_use = range(X.shape[1])
 
@@ -147,29 +147,50 @@ class DecisionTree(object):
 
 
 class RandomForest:
-    def __init__(self, num_trees=4, predict_method='vote', num_bootstrap_samples=None, random_feature_subset_size=None):
+    def __init__(self, num_trees=4, predict_method='vote', num_bootstrap_samples=None, random_feature_set_size=None):
         self.num_trees = num_trees
         self.predict_method = predict_method
-        self.random_feature_subset_size = random_feature_subset_size
+        self.random_feature_set_size = random_feature_set_size
         self.num_bootstrap_samples = num_bootstrap_samples
         self.forest = []
 
-    def train(self, X, y):
+    def train(self, X, y, verbose=False):
+        acc_bootstrap_list = []
+        acc_out_of_bag_list = []
+
         for i in range(self.num_trees):
             np.random.seed(int.from_bytes(os.urandom(4), byteorder="big"))
-            num_bootstrap_samples = X.shape[0] / 5 if self.num_bootstrap_samples is None else self.num_bootstrap_samples
+            num_bootstrap_samples = int(X.shape[0] / 5) if self.num_bootstrap_samples is None else self.num_bootstrap_samples
             indices = np.random.choice(X.shape[0],  num_bootstrap_samples, replace=True)
+
+            # create bootstrap data
             X_bootstrap, y_bootstrap = X[indices, :], y[indices]
 
-            tree = DecisionTree(algorithm=C45(min_sample_split=1,
-                                              random_feature_subset_size=self.random_feature_subset_size))
-            tree.train(X_bootstrap, y_bootstrap)
+            # create out-of-bag data
+            unique_chosen_indices = np.unique(indices)
+            out_of_bag_mask = np.ones(X.shape[0], dtype=bool)
+            out_of_bag_mask[unique_chosen_indices] = False
+            X_out_of_bag = X[out_of_bag_mask, :]
+            y_out_of_bag = y[out_of_bag_mask]
 
+            # train random forest
+            tree = DecisionTree(algorithm=C45(min_sample_split=1,
+                                              random_feature_set_size=self.random_feature_set_size))
+            tree.train(X_bootstrap, y_bootstrap)
             self.forest.append(tree)
 
-            # TODO: calculate out-of-bag accuracy and print
+            # calculate accuracy and print
+            acc_bootstrap = calc_accuracy(tree.predict(X_bootstrap), y_bootstrap)
+            acc_out_of_bag = calc_accuracy(tree.predict(X_out_of_bag), y_out_of_bag)
 
-            print('Tree {} has been finished training.'.format(i))
+            if verbose:
+                print('Tree {}. Bootstrap accuracy: {:.3f}, out-of-bag accuracy: {:.3f}'.format(i,
+                                                                                                acc_bootstrap,
+                                                                                                acc_out_of_bag))
+            acc_bootstrap_list.append(acc_bootstrap)
+            acc_out_of_bag_list.append(acc_out_of_bag)
+
+        return acc_bootstrap_list, acc_out_of_bag_list
 
     def predict(self, X):
         pred = []
