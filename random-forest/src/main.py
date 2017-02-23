@@ -1,6 +1,5 @@
 import time
 
-import numpy as np
 import pandas as pd
 
 from classifier import RandomForest
@@ -41,16 +40,23 @@ X_test = test_raw.values
 #               Train model
 ######################################################
 t1 = time.time()
-num_trees = 256
-num_bootstrap_samples = 800
-random_feature_set_size = 400
+num_trees = 1024
+num_bootstrap_samples = X_train.shape[0]
+random_feature_set_size = 45
 
 model = RandomForest(num_trees=num_trees, predict_method='avg', num_bootstrap_samples=num_bootstrap_samples,
                      random_feature_set_size=random_feature_set_size)
-# model = RandomForest(num_trees=64, predict_method='avg', num_bootstrap_samples=1000,
-#                      random_feature_set_size=500)
 model.train(X_train, y_train, verbose=True)
 print('Training phase took {:.1f} ms.'.format((time.time() - t1) * 1000))
+
+######################################################
+#          Output Top 10 Important Features
+######################################################
+feature_occurrence = model.get_feature_occurrence()
+ordered = sorted(feature_occurrence.items(), key=lambda x: -x[1])
+print("Top 10 Important Features: ")
+for idx, (feature_id, count) in enumerate(ordered[:10]):
+    print("[{}] Feature ID: {}, Count: {}".format(idx, feature_id, count))
 
 ######################################################
 #               Predicting Test Samples

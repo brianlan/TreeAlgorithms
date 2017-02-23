@@ -1,10 +1,19 @@
-import os
 from abc import abstractmethod
+from collections import defaultdict
 
 import numpy as np
 from scipy import stats
 
 from utilities import categorical_information_gain, numerical_information_gain, calc_accuracy
+
+
+class OccurrenceDict(defaultdict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def increment_by(self, another_dict):
+        for k, v in another_dict.items():
+            self[k] += v
 
 
 class TreeNode(object):
@@ -24,6 +33,17 @@ class TreeNode(object):
 
     def __str__(self):
         return self.__repr__()
+
+    def get_feature_occurrence(self):
+        occurrence = OccurrenceDict(int)
+
+        if self.branches:
+            occurrence[self.branches[0].attr] += 1
+            for child in self.branches:
+                if child.attr is not None:
+                    occurrence.increment_by(child.get_feature_occurrence())
+
+        return occurrence
 
 
 class Algorithm:
@@ -102,7 +122,6 @@ class C45(Algorithm):
 
     def find_best_split(self, X, y):
         if self.random_feature_set_size:
-            np.random.seed(int.from_bytes(os.urandom(4), byteorder="big"))
             features_to_use = np.random.choice(X.shape[1], self.random_feature_set_size)
         else:
             features_to_use = range(X.shape[1])
@@ -145,6 +164,9 @@ class DecisionTree(object):
 
         return np.array(pred)
 
+    def get_feature_occurrence(self):
+        return self.root.get_feature_occurrence()
+
 
 class RandomForest:
     def __init__(self, num_trees=4, predict_method='vote', num_bootstrap_samples=None, random_feature_set_size=None):
@@ -159,7 +181,6 @@ class RandomForest:
         acc_out_of_bag_list = []
 
         for i in range(self.num_trees):
-            np.random.seed(int.from_bytes(os.urandom(4), byteorder="big"))
             num_bootstrap_samples = int(X.shape[0] / 5) if self.num_bootstrap_samples is None else self.num_bootstrap_samples
             indices = np.random.choice(X.shape[0],  num_bootstrap_samples, replace=True)
 
@@ -205,3 +226,10 @@ class RandomForest:
                 pred.append(stats.mode(recommendations[:, i]).mode[0])
 
         return np.array(pred)
+
+    def get_feature_occurrence(self):
+        final_feature_occurrence = OccurrenceDict(int)
+        for tree in self.forest:
+            final_feature_occurrence.increment_by(tree.get_feature_occurrence())
+
+        return final_feature_occurrence
