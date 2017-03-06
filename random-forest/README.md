@@ -1,6 +1,6 @@
 # Performance
 ## Dataset
-Dataset is provided in the context [Predicting a Biological Response](https://www.kaggle.com/c/bioresponse#description) of Kaggle.
+Dataset is from the contest [Predicting a Biological Response](https://www.kaggle.com/c/bioresponse#description) of Kaggle.
 
 ## Parameter Settings
 ``` python
@@ -9,7 +9,7 @@ random_feature_set_size = 45
 ```
 
 ## Accuracy
-It's measured using Log Loss by the online judge of Kaggle. This code could achieve **0.41085** and **0.45216** on private and public test dataset respectively.
+It's measured using Log Loss by the online judge of Kaggle. This code could achieve **0.41085** and **0.45216** on private and public test dataset respectively, which outperforms the RandomForest baseline provided by official.
 
 ## Time
 **Machine Sepcs**
