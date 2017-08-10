@@ -48,7 +48,7 @@ class TreeNode(object):
 
 class Algorithm:
     @abstractmethod
-    def eval(self, parent, X, y):
+    def grow(self, parent, X, y):
         pass
 
     @abstractmethod
@@ -60,7 +60,7 @@ class ID3(Algorithm):
     def __init__(self, min_sample_split=10):
         self.min_sample_split = min_sample_split
 
-    def eval(self, parent, X, y):
+    def grow(self, parent, X, y):
         parent.predicted_class = stats.mode(y).mode[0]
 
         if X.size == 0 or X.shape[0] <= self.min_sample_split or len(np.unique(y)) == 1:
@@ -74,7 +74,7 @@ class ID3(Algorithm):
             sub_X = X[best_attr_array == v]
             sub_classes = y[best_attr_array == v]
             sub_tree = TreeNode(attr=best_attr, ref_value='='+str(v), path_func=lambda x, v=v: x == v)
-            self.eval(sub_tree, sub_X, sub_classes)
+            self.grow(sub_tree, sub_X, sub_classes)
             parent.branches.append(sub_tree)
 
     def find_best_split(self, X, y):
@@ -99,10 +99,10 @@ class C45(Algorithm):
         sub_idxes = path_func(X[:, best_attr])
         sub_y = y[sub_idxes]
         sub_X = X[sub_idxes, :]
-        self.eval(tree, sub_X, sub_y)
+        self.grow(tree, sub_X, sub_y)
         parent.branches.append(tree)
 
-    def eval(self, parent, X, y):
+    def grow(self, parent, X, y):
         parent.predicted_class = stats.mode(y).mode[0]
 
         if X.size == 0 or X.shape[0] <= self.min_sample_split or len(np.unique(y)) == 1:
@@ -155,7 +155,7 @@ class DecisionTree(object):
         return node.predicted_class
 
     def train(self, X, y):
-        self.algorithm.eval(self.root, X, y)
+        self.algorithm.grow(self.root, X, y)
 
     def predict(self, X):
         pred = []
