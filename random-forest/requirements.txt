@@ -2,5 +2,5 @@ scikit_learn==0.18.1
 numpy==1.11.3
 pandas==0.19.2
 pytest==3.0.5
-scipy==0.18.1
+scipy==1.10.0
 line_profiler==2.0
